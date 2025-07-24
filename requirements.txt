@@ -1,46 +1,22 @@
-# setuptools>=65.5.0
-# wheel>=0.40.0
-# Flask==3.0.3
-# Flask-Bcrypt==1.0.1
-# Flask-Cors==5.0.0
-# psycopg2-binary==2.9.9
-# SQLAlchemy==2.0.23
-# Flask-SQLAlchemy==3.1.1
-# python-dotenv==1.0.1
-# PyJWT==2.9.0
-# tf-keras==2.15.0
-# h5py==3.10.0
-# opencv-python-headless==4.8.0.74
-# numpy==1.23.5
-# Pillow==10.0.0
-# cloudinary==1.36.0
-# gunicorn==21.2.0
-# --- Build tools required by pip to install packages ---
 pip>=23.1
-setuptools==68.0.0
-wheel==0.41.2
+setuptools>=68.0.0
+wheel>=0.41.2
 
-# --- App and web server ---
 Flask==3.0.3
-gunicorn==21.2.0
-
-# --- Security & Auth ---
 Flask-Bcrypt==1.0.1
 Flask-Cors==5.0.0
-PyJWT==2.9.0
-
-# --- ORM & DB ---
 psycopg2-binary==2.9.9
 SQLAlchemy==2.0.23
 Flask-SQLAlchemy==3.1.1
-
-# --- Utils ---
 python-dotenv==1.0.1
-cloudinary==1.36.0
+PyJWT==2.9.0
 
-# --- ML and Model Support ---
-tf-keras==2.15.0         # Works as a lightweight Keras wrapper
+# Keras-only inference, no full TensorFlow wheels
+tf-keras==2.15.0
 h5py==3.10.0
+
 opencv-python-headless==4.8.0.74
 numpy==1.23.5
 Pillow==10.0.0
+cloudinary==1.36.0
+gunicorn==21.2.0
