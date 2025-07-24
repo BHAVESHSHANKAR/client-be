@@ -10,5 +10,5 @@ tensorflow==2.19.0
 opencv-python==4.10.0.84
 numpy==1.26.4
 Pillow==11.0.0
-cloudinary==1.36.0guni
-corn==21.2.0
+cloudinary==1.36.0
+gunicorn==21.2.0
