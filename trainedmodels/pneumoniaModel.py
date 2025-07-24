@@ -268,10 +268,23 @@ SECRET_KEY = getenv("SECRET_KEY")
 
 pneumonia_routes = Blueprint('pneumonia_routes', __name__)
 
-# Load the model with path relative to the script location
-model_path = os.path.join(os.path.dirname(__file__), 'pneumonia_model.h5')
-model = tf.keras.models.load_model(model_path)
-print("Pneumonia model successfully loaded")  # Added statement
+# Global variables for lazy loading
+_pneumonia_model = None
+
+# Load the model with lazy loading
+def get_pneumonia_model():
+    global _pneumonia_model
+    
+    if _pneumonia_model is None:
+        model_path = os.path.join(os.path.dirname(__file__), 'pneumonia_model.h5')
+        if not os.path.exists(model_path):
+            raise FileNotFoundError(f"Pneumonia model file not found at {model_path}")
+        
+        print("🫁 Loading pneumonia model...")
+        _pneumonia_model = tf.keras.models.load_model(model_path)
+        print("✅ Pneumonia model successfully loaded")
+    
+    return _pneumonia_model
 
 # JWT Authentication decorator (keeping for backward compatibility)
 def token_required(f):
@@ -523,6 +536,9 @@ def predict(current_user_id, current_username):
 
         # Record processing time
         start_time = time.time()
+        
+        # Load model only when needed
+        model = get_pneumonia_model()
         
         # Make prediction
         print(f"🔍 Making prediction for image shape: {input_image_reshaped.shape}")

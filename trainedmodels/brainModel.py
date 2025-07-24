@@ -80,31 +80,33 @@ def token_required(f):
     
     return decorated
 
-# Load model and metrics
-def get_model():
-    # Use a relative path from the location of brainModel.py
-    model_path = os.path.join(os.path.dirname(__file__), 'brain_model.keras')
-    if not os.path.exists(model_path):
-        raise FileNotFoundError(f"Model file not found at {model_path}")
-    model = tf.keras.models.load_model(model_path)
-    print("Brain Model loaded successfully")
-    metrics = {
-        'accuracy': 0.92,
-        'loss': 0.15,
-        'precision': 0.91,
-        'recall': 0.90,
-        'auc': 0.94
-    }
-    return model, metrics
+# Global variables for lazy loading
+_model = None
+_metrics = None
 
-try:
-    model, metrics = get_model()
-except FileNotFoundError as e:
-    print(f"Error: {e}")
-    raise
-except Exception as e:
-    print(f"Error loading model: {e}")
-    raise
+# Load model and metrics (lazy loading)
+def get_model():
+    global _model, _metrics
+    
+    if _model is None:
+        # Use a relative path from the location of brainModel.py
+        model_path = os.path.join(os.path.dirname(__file__), 'brain_model.keras')
+        if not os.path.exists(model_path):
+            raise FileNotFoundError(f"Model file not found at {model_path}")
+        
+        print("🧠 Loading brain model...")
+        _model = tf.keras.models.load_model(model_path)
+        print("✅ Brain Model loaded successfully")
+        
+        _metrics = {
+            'accuracy': 0.92,
+            'loss': 0.15,
+            'precision': 0.91,
+            'recall': 0.90,
+            'auc': 0.94
+        }
+    
+    return _model, _metrics
 
 # Utility Functions
 def is_likely_mri(image):
@@ -203,6 +205,9 @@ def analyze_mri(current_user_id, current_username):
                 "message": "Cropping failed. Try a clearer scan."
             }), 400
 
+        # Load model only when needed
+        model, metrics = get_model()
+        
         cropped_resized = cv2.resize(cropped, (50, 50))
         prediction = model.predict(np.expand_dims(cropped_resized, axis=0))
         confidence = float(prediction[0][0])
