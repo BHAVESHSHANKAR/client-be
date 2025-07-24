@@ -1,8 +1,21 @@
 #!/usr/bin/env bash
-set -e
+# render-build.sh - Custom build script for Render
 
+# Fail on error
+set -o errexit
+set -o pipefail
+set -o nounset
+
+# Display Python version
+echo "Using Python version:"
 python --version
-pip install --upgrade "pip>=23.1" "setuptools>=68.0.0" "wheel>=0.41.2"
-# Turn off PEP 517 isolated builds so pip doesn't pull an ancient setuptools for sdists
-export PIP_NO_BUILD_ISOLATION=1
+
+# Upgrade pip, setuptools, and wheel
+echo "Upgrading pip, setuptools, and wheel..."
+pip install --upgrade pip setuptools wheel
+
+# Install requirements
+echo "Installing requirements..."
 pip install -r requirements.txt
+
+echo "Build completed successfully!"
