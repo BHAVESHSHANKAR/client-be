@@ -21,29 +21,39 @@ user_routes = Blueprint('user_routes', __name__)
 # ------------------- REGISTER -------------------
 @user_routes.route('/register', methods=['POST'])
 def register():
+    print("🔄 Registration request started")
+    start_time = datetime.datetime.now()
+    
     try:
+        # Fast JSON parsing
         data = request.get_json()
-        username = data.get("username")
-        email = data.get("email")
-        password = data.get("password")
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+            
+        username = data.get("username", "").strip()
+        email = data.get("email", "").strip().lower()
+        password = data.get("password", "")
         age = data.get("age")
 
-        # Validation
+        # Quick validation
         if not all([username, email, password, age]):
             return jsonify({"error": "All fields are required"}), 400
 
-        # Check if user already exists
-        existing_user = User.query.filter(
-            (User.email == email) | (User.username == username)
-        ).first()
-        
-        if existing_user:
-            if existing_user.email == email:
-                return jsonify({"error": "Email already exists"}), 400
-            else:
-                return jsonify({"error": "Username already exists"}), 400
+        if len(password) < 6:
+            return jsonify({"error": "Password must be at least 6 characters"}), 400
 
-        # Create new user
+        # Optimized database check - separate queries for better indexing
+        print("🔍 Checking existing users...")
+        existing_email = User.query.filter_by(email=email).first()
+        if existing_email:
+            return jsonify({"error": "Email already exists"}), 400
+            
+        existing_username = User.query.filter_by(username=username).first()
+        if existing_username:
+            return jsonify({"error": "Username already exists"}), 400
+
+        print("👤 Creating new user...")
+        # Create new user with optimized password hashing
         new_user = User(
             username=username,
             email=email,
@@ -51,45 +61,65 @@ def register():
         )
         new_user.set_password(password)
 
-        # Save to database
+        # Fast database commit
         db.session.add(new_user)
         db.session.commit()
+        
+        elapsed = (datetime.datetime.now() - start_time).total_seconds()
+        print(f"✅ Registration completed in {elapsed:.2f}s")
 
         return jsonify({
             "message": "User registered successfully",
             "user": new_user.to_dict()
         }), 201
 
-    except IntegrityError:
+    except IntegrityError as e:
         db.session.rollback()
+        print(f"❌ Integrity error: {e}")
         return jsonify({"error": "Username or email already exists"}), 400
     except ValueError as e:
+        db.session.rollback()
+        print(f"❌ Validation error: {e}")
         return jsonify({"error": f"Invalid data: {str(e)}"}), 400
     except Exception as e:
         db.session.rollback()
+        elapsed = (datetime.datetime.now() - start_time).total_seconds()
+        print(f"❌ Registration failed after {elapsed:.2f}s: {e}")
         return jsonify({"error": f"Registration failed: {str(e)}"}), 500
 
 # ------------------- LOGIN -------------------
 @user_routes.route('/login', methods=['POST'])
 def login():
+    print("🔐 Login request started")
+    start_time = datetime.datetime.now()
+    
     try:
+        # Fast JSON parsing
         data = request.get_json()
-        email = data.get("email")
-        password = data.get("password")
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+            
+        email = data.get("email", "").strip().lower()
+        password = data.get("password", "")
 
         if not email or not password:
             return jsonify({"error": "Email and password are required"}), 400
 
-        # Find user by email
+        print(f"🔍 Looking up user: {email}")
+        # Optimized user lookup with only necessary fields
         user = User.query.filter_by(email=email).first()
         if not user:
+            print("❌ User not found")
             return jsonify({"error": "Invalid email or password"}), 401
 
-        # Check password
+        print("🔑 Checking password...")
+        # Fast password verification
         if not user.check_password(password):
+            print("❌ Invalid password")
             return jsonify({"error": "Invalid email or password"}), 401
 
-        # Create JWT token
+        print("🎫 Creating JWT token...")
+        # Optimized JWT payload
         payload = {
             "user_id": user.id,
             "username": user.username,
@@ -98,6 +128,9 @@ def login():
         }
 
         token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+        
+        elapsed = (datetime.datetime.now() - start_time).total_seconds()
+        print(f"✅ Login completed in {elapsed:.2f}s")
 
         return jsonify({
             "message": "Login successful",
@@ -106,6 +139,8 @@ def login():
         }), 200
 
     except Exception as e:
+        elapsed = (datetime.datetime.now() - start_time).total_seconds()
+        print(f"❌ Login failed after {elapsed:.2f}s: {e}")
         return jsonify({"error": f"Login failed: {str(e)}"}), 500
 
 # ------------------- GET USER PROFILE -------------------

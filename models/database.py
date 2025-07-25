@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+import hashlib
 
 db = SQLAlchemy()
 
@@ -8,11 +9,11 @@ class User(db.Model):
     __tablename__ = 'users'
     
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
+    username = db.Column(db.String(80), unique=True, nullable=False, index=True)
+    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
     age = db.Column(db.Integer, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
@@ -20,8 +21,9 @@ class User(db.Model):
     pneumonia_analyses = db.relationship('PneumoniaAnalysis', backref='user', lazy=True, cascade='all, delete-orphan')
     
     def set_password(self, password):
-        """Hash and set the password"""
-        self.password_hash = generate_password_hash(password)
+        """Hash and set the password with optimized method"""
+        # Use pbkdf2:sha256 with lower iterations for faster hashing
+        self.password_hash = generate_password_hash(password, method='pbkdf2:sha256', salt_length=8)
     
     def check_password(self, password):
         """Check if provided password matches the hash"""

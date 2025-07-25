@@ -6,18 +6,32 @@ from trainedmodels.pneumoniaModel import pneumonia_routes
 from models.database import init_db
 from os import getenv
 from dotenv import load_dotenv
+import logging
 
 load_dotenv()
 
 app = Flask(__name__)
 
-# Database configuration
+# Optimize Flask for production performance
+app.config['JSON_SORT_KEYS'] = False
+app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
+
+# Database configuration with optimizations
 DATABASE_URL = getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL environment variable must be set")
 
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Database connection pooling for faster queries
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_size': 10,
+    'pool_recycle': 120,
+    'pool_pre_ping': True,
+    'max_overflow': 20,
+    'pool_timeout': 30
+}
 
 # CORS setup
 FRONTEND_URL = getenv("FRONTEND_URL")
