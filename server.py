@@ -49,7 +49,7 @@ bcrypt.init_app(app)
 # Initialize database
 try:
     init_db(app)
-    print("✅ Neon PostgreSQL connection successful")
+    print("✅ Neon PostgreSQL connection successfully")
 except Exception as e:
     print("❌ Database connection failed:", e)
     raise e
