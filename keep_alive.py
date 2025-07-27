@@ -24,11 +24,34 @@ class KeepAliveService:
             if response.status_code == 200:
                 print(f"🟢 Keep-alive ping successful at {datetime.now().strftime('%H:%M:%S')}")
                 return True
-            else:
-                print(f"🟡 Keep-alive ping returned {response.status_code}")
+            elif response.status_code == 502:
+                print(f"🟡 Server starting up (502) at {datetime.now().strftime('%H:%M:%S')} - attempting warmup")
+                # Try to warm up the server
+                try:
+                    warmup_response = requests.get(f"{self.server_url}/warmup", timeout=60)
+                    if warmup_response.status_code == 200:
+                        print(f"🔥 Server warmup successful")
+                        return True
+                    else:
+                        print(f"🟡 Warmup returned {warmup_response.status_code}")
+                        return False
+                except Exception as warmup_error:
+                    print(f"🟡 Warmup failed: {str(warmup_error)}")
+                    return False
+            elif response.status_code == 503:
+                print(f"🟡 Server temporarily unavailable (503) at {datetime.now().strftime('%H:%M:%S')}")
                 return False
+            else:
+                print(f"🟡 Keep-alive ping returned {response.status_code} at {datetime.now().strftime('%H:%M:%S')}")
+                return False
+        except requests.exceptions.Timeout:
+            print(f"🟡 Keep-alive ping timed out at {datetime.now().strftime('%H:%M:%S')} - server may be sleeping")
+            return False
+        except requests.exceptions.ConnectionError:
+            print(f"🟡 Connection error at {datetime.now().strftime('%H:%M:%S')} - server may be starting up")
+            return False
         except Exception as e:
-            print(f"🔴 Keep-alive ping failed: {str(e)}")
+            print(f"🔴 Keep-alive ping failed at {datetime.now().strftime('%H:%M:%S')}: {str(e)}")
             return False
     
     def keep_alive_loop(self):

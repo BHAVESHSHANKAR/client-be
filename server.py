@@ -70,8 +70,8 @@ except Exception as e:
 if not app.debug and getenv('RENDER_EXTERNAL_URL'):
     try:
         from keep_alive import start_keep_alive
-        # Start keep-alive with 4-minute intervals (before 5-minute Render timeout)
-        start_keep_alive(getenv('RENDER_EXTERNAL_URL'), interval=240)
+        # Start keep-alive with 3-minute intervals (more aggressive to prevent 502s)
+        start_keep_alive(getenv('RENDER_EXTERNAL_URL'), interval=180)
         print("🔄 Keep-alive service started for production")
     except Exception as e:
         print(f"⚠️ Keep-alive service failed to start: {e}")
