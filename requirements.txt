@@ -19,3 +19,4 @@ h5py==3.10.0
 opencv-python-headless==4.10.0.84
 Pillow==10.3.0
 cloudinary==1.41.0
+requests==2.31.0

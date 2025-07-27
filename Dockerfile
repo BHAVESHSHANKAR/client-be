@@ -28,5 +28,5 @@ COPY . .
 # Expose port
 EXPOSE 5000
 
-# Start the app with Gunicorn (optimized for memory)
-CMD ["gunicorn", "-b", "0.0.0.0:5000", "--workers", "1", "--timeout", "120", "--max-requests", "100", "--max-requests-jitter", "10", "server:app"]
+# Start the app with Gunicorn (optimized for stability and performance)
+CMD ["gunicorn", "-b", "0.0.0.0:5000", "--workers", "1", "--timeout", "180", "--keep-alive", "5", "--max-requests", "200", "--max-requests-jitter", "20", "--preload", "server:app"]
